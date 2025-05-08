@@ -35,12 +35,35 @@ confidence_threshold = st.sidebar.slider(
     max_value=1.0, 
     value=0.35,  # Default value
     step=0.01,
-    help="Adjust the minimum confidence for a detection to be shown. Lower values show more (possibly uncertain) detections."
+    help="Adjust the minimum confidence for a detection "
+         "to be shown. Lower values show more uncertain detections."
 )
 st.sidebar.markdown("---_")
 uploaded_file = st.sidebar.file_uploader(
     "📂 Upload Image", type=["jpg", "jpeg", "png"]
 )
+
+if st.sidebar.button("🔄 Test Backend Connection"):
+    with st.spinner('Testing connection to backend...'):
+        try:
+            root_url = FASTAPI_URL.rsplit('/detect/', 1)[0] + '/'
+            response = requests.get(root_url, timeout=10)
+            response.raise_for_status()
+            st.sidebar.success(
+                f"✅ Connected to backend! Response: "
+                f"{response.json()['message']}"
+            )
+        except requests.exceptions.ConnectionError:
+            st.sidebar.error(
+                f"❌ Connection Failed: Could not connect "
+                f"to {root_url}. Ensure backend is running."
+            )
+        except requests.exceptions.Timeout:
+            st.sidebar.error(
+                "❌ Request Timeout: Backend took too long."
+            )
+        except requests.exceptions.RequestException as e:
+            st.sidebar.error(f"❌ Error: {str(e)}")
 
 # --- MAIN PANEL ---
 if uploaded_file is not None:
@@ -69,9 +92,9 @@ if uploaded_file is not None:
             draw = ImageDraw.Draw(image_with_detections)
             
             try:
-                font = ImageFont.truetype("arial.ttf", 15) # Common font
+                font = ImageFont.truetype("arial.ttf", 15)  # Common font
             except IOError:
-                font = ImageFont.load_default() # Fallback font
+                font = ImageFont.load_default()  # Fallback font
 
             num_filtered_detections = 0
             if detections:

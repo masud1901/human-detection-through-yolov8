@@ -83,6 +83,46 @@ human_detection/
 -   The frontend (`frontend/app.py`) expects the `FASTAPI_URL` environment variable to point to the backend's detection endpoint. `docker-compose.yml` sets this automatically for container-to-container communication.
 -   The backend (`backend/app/main.py`) uses `MODEL_PATH` (defaulted in its Dockerfile) to locate the model file within its container.
 
+## Building and Pushing Docker Images
+
+A utility script `build_and_push.sh` is provided in the project root to simplify the process of building the Docker images for both the backend and frontend services and pushing them to Docker Hub.
+
+### Script Overview
+
+The script performs the following actions:
+
+1.  Builds the backend Docker image using `backend/Dockerfile` and tags it.
+2.  Builds the frontend Docker image using `frontend/Dockerfile` and tags it.
+3.  Pushes both tagged images to Docker Hub.
+
+### Configuration
+
+Before running the script, you might want to review or modify the following variables at the top of `build_and_push.sh`:
+
+-   `DOCKER_HUB_USERNAME`: Set this to your Docker Hub username. (Default: "ayon1901")
+-   `BACKEND_IMAGE_NAME`: Name for the backend image. (Default: "human-detection-backend")
+-   `FRONTEND_IMAGE_NAME`: Name for the frontend image. (Default: "human-detection-frontend")
+-   `TAG`: The tag for the images. (Default: "latest")
+
+### Prerequisites
+
+-   Ensure Docker is running.
+-   You must be logged into Docker Hub via the command line. If not, run:
+    ```bash
+    docker login
+    ```
+    and enter your Docker Hub credentials.
+
+### Usage
+
+To run the script, navigate to the project root directory in your terminal and execute:
+
+```bash
+bash build_and_push.sh
+```
+
+This will build the images and push them to the configured Docker Hub repository.
+
 ## Model Used
 
 The application currently uses `last.pt` due to issues encountered with loading `best.pt` (related to potential file corruption or version incompatibility). The `MODEL_PATH` environment variable in `backend/Dockerfile` is set accordingly.
