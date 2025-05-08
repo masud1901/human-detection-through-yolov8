@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: human_detection_backend
+    ports:
+      - "8000:8000" # Expose FastAPI port to host
+    volumes:
+      - ./models:/app/models # Mount local models directory into container
+    # The MODEL_PATH is already set in the backend/Dockerfile ENV, 
+    # but you could override it here if needed for different local models:
+    # environment:
+    #   - MODEL_PATH=/app/models/another_model.pt
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: human_detection_frontend
+    ports:
+      - "8501:8501" # Expose Streamlit port to host
+    depends_on:
+      - backend # Ensures backend starts before frontend attempts to connect
+    environment:
+      # This tells Streamlit app inside Docker how to reach the backend service.
+      # 'backend' is the service name defined above in this docker-compose file.
+      - FASTAPI_URL=http://backend:8000/detect/
+    restart: unless-stopped
+
+# Optional: Define a network if needed, though default bridge usually works.
+# networks:
+#   app_network:
+#     driver: bridge

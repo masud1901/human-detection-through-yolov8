@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+pip-freeze.txt
+pipenv.lock
+.DS_Store
+
+# Docker
+# docker-compose.override.yml # You might want this if you use it locally
+
+# IDE
+.vscode/
+.idea/
+
+# Extracted images (if you create this locally)
+# extracted_images/
+# inference_results/
+
+# Local model files if you download many versions
+# models/temp_*.pt 
+
+images/
