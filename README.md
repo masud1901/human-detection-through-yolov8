@@ -53,10 +53,6 @@ human_detection/
 ### Steps
 
 1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd <your-repo-name>
-    ```
 
 2.  **Place Model File:**
     Ensure your trained model file (currently configured to use `last.pt`) is in the `models/` directory.
