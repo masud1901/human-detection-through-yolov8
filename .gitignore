@@ -26,3 +26,4 @@ pipenv.lock
 # models/temp_*.pt 
 
 images/
+object-detection.pem

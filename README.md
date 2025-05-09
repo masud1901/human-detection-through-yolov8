@@ -143,6 +143,48 @@ This application is structured for easy deployment to [Railway](https://railway.
     -   Ensure port 8501 is exposed.
     -   **Crucially, set the environment variable `FASTAPI_URL`** for the frontend service to `http://<your-railway-backend-service-name>:8000/detect/`. Replace `<your-railway-backend-service-name>` with the actual name Railway gives your backend service.
 
+## Deployment to AWS EC2 (Alternative)
+
+While the project is designed for Railway, it was also successfully deployed to an AWS EC2 instance (free-tier Amazon Linux). This section details key steps and learnings from that process, which can be adapted for similar cloud VM deployments.
+
+### Key Steps & Learnings:
+
+1.  **EC2 Instance Setup:**
+    -   Launched a free-tier Amazon Linux EC2 instance.
+    -   SSH access is required for setup.
+
+2.  **Disk Space Management (Crucial):**
+    -   The default 8GB root volume on free-tier instances can be insufficient for Docker images, especially those with ML libraries.
+    -   **Symptom:** `docker-compose up --build` or `docker pull` failing with "no space left on device".
+    -   **Solution:**
+        -   Attached a new EBS volume (e.g., 20GB) to the EC2 instance.
+        -   Formatted the new volume (e.g., `sudo mkfs -t ext4 /dev/xvdf` - *Note: device name like `/dev/xvdf` or `/dev/nvme1n1` may vary depending on the instance type and virtualization*).
+        -   Stopped the Docker service (`sudo systemctl stop docker`).
+        -   Created a mount point: `sudo mkdir -p /var/lib/docker` (or ensured the old one was empty if it existed on the root volume).
+        -   Mounted the new volume to `/var/lib/docker`: `sudo mount /dev/xvdf /var/lib/docker`.
+        -   **Made the mount permanent:** Added an entry to `/etc/fstab` using the volume's UUID (e.g., `UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx /var/lib/docker ext4 defaults,nofail 0 2`). This ensures Docker uses the larger volume for its images, containers, and build cache.
+        -   Restarted Docker (`sudo systemctl start docker`).
+
+3.  **Docker & Docker Compose Installation:**
+    -   Installed Docker and Docker Compose on the EC2 instance following the official documentation for Amazon Linux.
+
+4.  **Cloning the Repository & Model:**
+    -   Cloned the project repository onto the EC2 instance.
+    -   Ensured the model file (`models/last.pt`) was in place.
+
+5.  **Building and Running:**
+    -   Used `docker-compose up --build -d` to build and run the application.
+
+6.  **Security Group Configuration:**
+    -   **Symptom:** Application running (verified with `docker ps` and logs) but not accessible via the EC2 public IP in a browser.
+    -   **Solution:** Configured the EC2 instance's Security Group to allow inbound TCP traffic on the port used by the frontend (e.g., `8501`) from `0.0.0.0/0` (for public access during testing) or a specific IP for better security.
+
+7.  **Application Stability:**
+    -   Encountered an issue where containers were in a restart loop due to a missing dependency (`dill` for the backend) being installed at runtime and requiring a restart.
+    -   **Solution:** Added the missing dependency to the backend's `requirements.txt` and rebuilt the Docker image, ensuring all dependencies are included in the image itself for stability.
+
+This EC2 deployment process highlights common challenges in moving containerized applications to cloud VMs, particularly around storage, network configuration, and ensuring application dependencies are correctly packaged.
+
 ## API Endpoint
 
 -   **`POST /detect/`**
